@@ -31,6 +31,11 @@ const schemaNewUser = joi
 	})
 	.with("password", "isPasswordEqual");
 
+const schemaUser = joi.object({
+	email: joi.string().email().required(),
+	password: joi.string().pattern(new RegExp("^[a-zA-Z0-9]{3,30}$")).required(),
+});
+
 //ROTAS
 
 app.post("/signup", async (req, res) => {
@@ -58,11 +63,39 @@ app.post("/signup", async (req, res) => {
 		});
 
 		res.sendStatus(201);
-	} catch (error) {
+	} catch (err) {
 		res.sendStatus(500);
 	}
 });
 
-app.post("/login", (req, res) => {});
+app.post("/login", async (req, res) => {
+	const { email, password } = req.headers;
+	console.log(email, password);
+	const { error } = schemaUser.validate({
+		email: email,
+		password: password,
+	});
+
+	if (error) {
+		res.sendStatus(422);
+		return;
+	}
+
+	try {
+		const isUserRegistered = await db.collection("users").findOne({
+			email,
+			password,
+		});
+
+		if (!isUserRegistered) {
+			res.sendStatus(401);
+			return;
+		}
+
+		res.sendStatus(200);
+	} catch (err) {
+		res.sendStatus(500);
+	}
+});
 
 app.listen(process.env.PORT);
