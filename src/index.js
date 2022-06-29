@@ -108,7 +108,7 @@ app.post("/login", async (req, res) => {
 		});
 
 		if (
-			isUserRegistered ||
+			isUserRegistered &&
 			bcrypt.compareSync(password, isUserRegistered.password)
 		) {
 			const token = uuid();
