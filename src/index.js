@@ -21,7 +21,6 @@ mongoClient.connect().then(() => {
 	db = mongoClient.db("Wallet-DB");
 });
 
-//SCHEMA
 const schemaNewUser = joi
 	.object({
 		name: joi.string().required(),
@@ -50,8 +49,6 @@ const schemaEdit = joi.object({
 	description: joi.string().required(),
 });
 
-//ROTAS
-
 app.post("/signup", async (req, res) => {
 	const { name, email, password, isPasswordEqual } = req.body;
 	const { error } = schemaNewUser.validate({
@@ -61,20 +58,14 @@ app.post("/signup", async (req, res) => {
 		isPasswordEqual,
 	});
 
-	if (error) {
-		res.status(422).send("Dados incorretos");
-		return;
-	}
+	if (error) return res.status(422).send("Todos os campos são obrigatórios!");
 
 	try {
 		const isUserRegistered = await db.collection("users").findOne({
 			email,
 		});
 
-		if (isUserRegistered) {
-			res.status(409).send("Usuário já cadastrado!");
-			return;
-		}
+		if (isUserRegistered) return res.status(409).send("Usuário já cadastrado!");
 
 		const encryptedPassaword = bcrypt.hashSync(password, 10);
 
@@ -84,7 +75,7 @@ app.post("/signup", async (req, res) => {
 			password: encryptedPassaword,
 		});
 
-		res.sendStatus(201);
+		res.status(201).send("Usuário cadastrado com sucesso!");
 	} catch (err) {
 		res.sendStatus(500);
 	}
@@ -97,10 +88,7 @@ app.post("/login", async (req, res) => {
 		password: password,
 	});
 
-	if (error) {
-		res.sendStatus(422);
-		return;
-	}
+	if (error) return res.status(422).send("Todos os campos são obrigatórios!");
 
 	try {
 		const isUserRegistered = await db.collection("users").findOne({
@@ -120,7 +108,7 @@ app.post("/login", async (req, res) => {
 
 			res.status(200).send({ token, name: isUserRegistered.name });
 		} else {
-			res.sendStatus(401);
+			res.status(401).send("Usuário/senha inválidos.");
 			return;
 		}
 	} catch (err) {
@@ -133,10 +121,7 @@ app.post("/history", async (req, res) => {
 	const token = authorization?.replace("Bearer ", "");
 	const { error } = schemaInput.validate(req.body);
 
-	if (error) {
-		res.sendStatus(422);
-		return;
-	}
+	if (error) return res.status(422).send("Todos os campos são obrigatórios!");
 
 	try {
 		const getUser = await db.collection("sessions").findOne({
@@ -224,10 +209,7 @@ app.put("/history/:id", async (req, res) => {
 
 	const { error } = schemaEdit.validate(req.body);
 
-	if (error) {
-		res.sendStatus(422);
-		return;
-	}
+	if (error) return res.status(422).send("Todos os campos são obrigatórios!");
 
 	try {
 		const getUser = await db.collection("sessions").findOne({
