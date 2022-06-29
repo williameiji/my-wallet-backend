@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import dayjs from "dayjs";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 
@@ -18,7 +19,7 @@ const mongoClient = new MongoClient(process.env.MONGO_URL);
 let db;
 
 mongoClient.connect().then(() => {
-	db = mongoClient.db("Wallet-DB");
+	db = mongoClient.db(process.env.DATABASE_NAME);
 });
 
 const schemaNewUser = joi
@@ -48,6 +49,22 @@ const schemaEdit = joi.object({
 	value: joi.string().required(),
 	description: joi.string().required(),
 });
+
+function verifyToken(req, res, next) {
+	const getToken = req.headers["authorization"];
+	const token = getToken?.replace("Bearer ", "");
+
+	if (!token) {
+		return res.status(403).send("Um token é necessario para autenticação");
+	}
+	try {
+		const decoded = jwt.verify(token, process.env.SECRET_KEY_TOKEN);
+		req.user = decoded;
+	} catch (err) {
+		return res.status(401).send("Token inválido");
+	}
+	return next();
+}
 
 app.post("/signup", async (req, res) => {
 	const { name, email, password, isPasswordEqual } = req.body;
@@ -99,12 +116,22 @@ app.post("/login", async (req, res) => {
 			isUserRegistered &&
 			bcrypt.compareSync(password, isUserRegistered.password)
 		) {
-			const token = uuid();
+			// const token = uuid();
 
-			await db.collection("sessions").insertOne({
-				email: isUserRegistered.email,
-				token,
-			});
+			// console.log(token);
+
+			// await db.collection("sessions").insertOne({
+			// 	email: isUserRegistered.email,
+			// 	token,
+			// });
+
+			const token = jwt.sign(
+				{
+					data: isUserRegistered.email,
+				},
+				process.env.SECRET_KEY_TOKEN,
+				{ expiresIn: 5 * 60 }
+			);
 
 			res.status(200).send({ token, name: isUserRegistered.name });
 		} else {
@@ -116,22 +143,14 @@ app.post("/login", async (req, res) => {
 	}
 });
 
-app.post("/history", async (req, res) => {
-	const { authorization } = req.headers;
-	const token = authorization?.replace("Bearer ", "");
+app.post("/history", verifyToken, async (req, res) => {
 	const { error } = schemaInput.validate(req.body);
 
 	if (error) return res.status(422).send("Todos os campos são obrigatórios!");
 
 	try {
-		const getUser = await db.collection("sessions").findOne({
-			token,
-		});
-
-		if (!getUser) return res.sendStatus(404);
-
 		const user = await db.collection("users").findOne({
-			email: getUser.email,
+			email: req.user.data,
 		});
 
 		if (!user) return res.sendStatus(404);
@@ -148,19 +167,10 @@ app.post("/history", async (req, res) => {
 	}
 });
 
-app.get("/history", async (req, res) => {
-	const { authorization } = req.headers;
-	const token = authorization?.replace("Bearer ", "");
-
+app.get("/history", verifyToken, async (req, res) => {
 	try {
-		const getUser = await db.collection("sessions").findOne({
-			token,
-		});
-
-		if (!getUser) return res.sendStatus(404);
-
 		const user = await db.collection("users").findOne({
-			email: getUser.email,
+			email: req.user.data,
 		});
 
 		if (!user) return res.sendStatus(404);
@@ -176,18 +186,10 @@ app.get("/history", async (req, res) => {
 	}
 });
 
-app.delete("/history/:id", async (req, res) => {
+app.delete("/history/:id", verifyToken, async (req, res) => {
 	const { id } = req.params;
-	const { authorization } = req.headers;
-	const token = authorization?.replace("Bearer ", "");
 
 	try {
-		const getUser = await db.collection("sessions").findOne({
-			token,
-		});
-
-		if (!getUser) return res.sendStatus(404);
-
 		const informationToDelete = await db
 			.collection("history")
 			.findOne({ _id: ObjectId(`${id}`) });
@@ -202,22 +204,14 @@ app.delete("/history/:id", async (req, res) => {
 	}
 });
 
-app.put("/history/:id", async (req, res) => {
+app.put("/history/:id", verifyToken, async (req, res) => {
 	const { id } = req.params;
-	const { authorization } = req.headers;
-	const token = authorization?.replace("Bearer ", "");
 
 	const { error } = schemaEdit.validate(req.body);
 
 	if (error) return res.status(422).send("Todos os campos são obrigatórios!");
 
 	try {
-		const getUser = await db.collection("sessions").findOne({
-			token,
-		});
-
-		if (!getUser) return res.sendStatus(404);
-
 		const informationToEdit = await db
 			.collection("history")
 			.findOne({ _id: ObjectId(`${id}`) });
