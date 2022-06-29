@@ -113,41 +113,12 @@ app.post("/login", async (req, res) => {
 				token,
 			});
 
-			res.status(200).send(token);
+			res.status(200).send({ token, name: isUserRegistered.name });
 		} else {
 			res.sendStatus(401);
 			return;
 		}
 	} catch (err) {
-		res.sendStatus(500);
-	}
-});
-
-app.get("/user", async (req, res) => {
-	const { authorization } = req.headers;
-	const token = authorization?.replace("Bearer ", "");
-
-	console.log(authorization);
-
-	try {
-		const getUser = await db.collection("sessions").findOne({
-			token,
-		});
-
-		if (!getUser) {
-			return res.sendStatus(404);
-		}
-
-		const user = await db.collection("users").findOne({
-			email: getUser.email,
-		});
-
-		if (!user) {
-			return res.sendStatus(404);
-		}
-
-		res.send(user.name);
-	} catch (error) {
 		res.sendStatus(500);
 	}
 });
@@ -210,6 +181,32 @@ app.get("/history", async (req, res) => {
 			.toArray();
 
 		res.send(userHistory);
+	} catch (error) {
+		res.sendStatus(500);
+	}
+});
+
+app.delete("/history/:id", async (req, res) => {
+	const { id } = req.params;
+	const { authorization } = req.headers;
+	const token = authorization?.replace("Bearer ", "");
+
+	try {
+		const getUser = await db.collection("sessions").findOne({
+			token,
+		});
+
+		if (!getUser) return res.sendStatus(404);
+
+		const informationToDelete = await db
+			.collection("history")
+			.findOne({ _id: ObjectId(`${id}`) });
+
+		if (!informationToDelete) return res.sendStatus(404);
+
+		await db.collection("history").deleteOne(informationToDelete);
+
+		res.sendStatus(200);
 	} catch (error) {
 		res.sendStatus(500);
 	}
