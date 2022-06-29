@@ -42,7 +42,12 @@ const schemaUser = joi.object({
 const schemaInput = joi.object({
 	value: joi.string().required(),
 	description: joi.string().required(),
-	color: joi.string(),
+	type: joi.string(),
+});
+
+const schemaEdit = joi.object({
+	value: joi.string().required(),
+	description: joi.string().required(),
 });
 
 //ROTAS
@@ -205,6 +210,43 @@ app.delete("/history/:id", async (req, res) => {
 		if (!informationToDelete) return res.sendStatus(404);
 
 		await db.collection("history").deleteOne(informationToDelete);
+
+		res.sendStatus(200);
+	} catch (error) {
+		res.sendStatus(500);
+	}
+});
+
+app.put("/history/:id", async (req, res) => {
+	const { id } = req.params;
+	const { authorization } = req.headers;
+	const token = authorization?.replace("Bearer ", "");
+
+	const { error } = schemaEdit.validate(req.body);
+
+	if (error) {
+		res.sendStatus(422);
+		return;
+	}
+
+	try {
+		const getUser = await db.collection("sessions").findOne({
+			token,
+		});
+
+		if (!getUser) return res.sendStatus(404);
+
+		const informationToEdit = await db
+			.collection("history")
+			.findOne({ _id: ObjectId(`${id}`) });
+
+		if (!informationToEdit) return res.sendStatus(404);
+
+		await db.collection("history").updateOne(informationToEdit, {
+			$set: {
+				...req.body,
+			},
+		});
 
 		res.sendStatus(200);
 	} catch (error) {
