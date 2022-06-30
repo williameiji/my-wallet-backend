@@ -20,7 +20,7 @@ export const schemaUser = joi.object({
 export const schemaInput = joi.object({
 	value: joi.number().required(),
 	description: joi.string().required(),
-	type: joi.string(),
+	type: joi.any().valid("input", "output").required(),
 });
 
 export const schemaEdit = joi.object({

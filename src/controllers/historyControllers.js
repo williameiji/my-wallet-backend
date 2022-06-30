@@ -1,4 +1,7 @@
-import { schemaInput, schemaEdit } from "../validations/schemaValidation.js";
+import {
+	schemaInput,
+	schemaEdit,
+} from "../infra/validators/schemaValidator.js";
 import dayjs from "dayjs";
 import { ObjectId } from "mongodb";
 import db from "../databases/mongo.js";

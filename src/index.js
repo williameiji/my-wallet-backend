@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 
-import verifyToken from "./validations/tokenValidation.js";
+import verifyToken from "./infra/validators/tokenValidator.js";
 import { signIn, signUp } from "./controllers/authControllers.js";
 import {
 	addHistory,

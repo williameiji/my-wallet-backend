@@ -2,7 +2,10 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import db from "../databases/mongo.js";
-import { schemaUser, schemaNewUser } from "../validations/schemaValidation.js";
+import {
+	schemaUser,
+	schemaNewUser,
+} from "../infra/validators/schemaValidator.js";
 
 dotenv.config();
 
