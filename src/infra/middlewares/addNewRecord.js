@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 
 async function addNewRecord(req, res, next) {
 	const userDecoded = res.locals.userDecoded;
+
 	const newRecord = res.locals.newRecord;
 
 	const user = await db.collection("users").findOne({
