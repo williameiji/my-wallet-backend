@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 dotenv.config();
 
-export default function verifyToken(req, res, next) {
+function verifyToken(req, res, next) {
 	const getToken = req.headers["authorization"];
 	const token = getToken?.replace("Bearer ", "");
 
@@ -12,9 +12,11 @@ export default function verifyToken(req, res, next) {
 	}
 	try {
 		const decoded = jwt.verify(token, process.env.SECRET_KEY_TOKEN);
-		req.user = decoded;
+		res.locals.userDecoded = decoded;
+		next();
 	} catch (err) {
 		return res.status(401).send("Token inválido");
 	}
-	return next();
 }
+
+export default verifyToken;
