@@ -1,6 +1,6 @@
 import schemaInputData from "../schemas/schemaInputData.js";
 
-function newRecordValidator(req, res, next) {
+async function newRecordValidator(req, res, next) {
 	const newRecord = req.body;
 	const { error } = schemaInputData.validate(newRecord);
 

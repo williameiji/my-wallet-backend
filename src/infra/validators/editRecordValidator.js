@@ -1,6 +1,6 @@
 import schemaEditData from "../schemas/schemaEditData.js";
 
-function editRecordValidator(req, res, next) {
+async function editRecordValidator(req, res, next) {
 	const dataToEdit = req.body;
 	const { error } = schemaEditData.validate(dataToEdit);
 

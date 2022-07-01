@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 dotenv.config();
 
-function verifyToken(req, res, next) {
+async function verifyToken(req, res, next) {
 	const getToken = req.headers["authorization"];
 	const token = getToken?.replace("Bearer ", "");
 

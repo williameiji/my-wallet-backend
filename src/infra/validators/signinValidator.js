@@ -1,6 +1,6 @@
 import schemaSignin from "../schemas/schemaSignin.js";
 
-function signinValidator(req, res, next) {
+async function signinValidator(req, res, next) {
 	const { email, password } = req.headers;
 	const user = {
 		email,
