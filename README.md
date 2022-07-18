@@ -1,4 +1,4 @@
-# MAY-WALLET BACKEND
+# MY-WALLET BACKEND
 
 ## About
 
