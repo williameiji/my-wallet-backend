@@ -1,36 +1,31 @@
 import { Router } from "express";
-
 import {
 	addHistory,
 	getHistory,
 	deleteHistory,
 	editHistory,
 } from "../controllers/historyControllers.js";
-import addNewRecord from "../infra/middlewares/addNewRecord.js";
-
 import verifyToken from "../infra/validators/tokenValidator.js";
-import newRecordValidator from "../infra/validators/newRecordValidator.js";
-import getRecords from "../infra/middlewares/getRecords.js";
-import deleteRecord from "../infra/middlewares/deleteRecord.js";
-import editRecord from "../infra/middlewares/editRecord.js";
-import editRecordValidator from "../infra/validators/editRecordValidator.js";
+import schemaValidator from "../infra/middlewares/schemaValidator.js";
+import schemaInputData from "../infra/schemas/schemaInputData.js";
+import schemaEditData from "../infra/schemas/schemaEditData.js";
 
 const historyRouter = Router();
 
 historyRouter.post(
 	"/history",
 	verifyToken,
-	newRecordValidator,
-	addNewRecord,
+	schemaValidator(schemaInputData),
 	addHistory
 );
-historyRouter.get("/history", verifyToken, getRecords, getHistory);
-historyRouter.delete("/history/:id", verifyToken, deleteRecord, deleteHistory);
+historyRouter.get("/history", verifyToken, getHistory);
+
+historyRouter.delete("/history/:id", verifyToken, deleteHistory);
+
 historyRouter.put(
 	"/history/:id",
 	verifyToken,
-	editRecordValidator,
-	editRecord,
+	schemaValidator(schemaEditData),
 	editHistory
 );
 

@@ -1,33 +1,35 @@
-export function addHistory(req, res) {
-	try {
-		res.sendStatus(201);
-	} catch (err) {
-		res.sendStatus(500);
-	}
+import * as historyServices from "../services/historyServices.js";
+
+export async function addHistory(req, res) {
+	const userDecoded = res.locals.userDecoded;
+	const newRecord = req.body;
+
+	await historyServices.addHistory(userDecoded, newRecord);
+
+	res.sendStatus(201);
 }
 
 export async function getHistory(req, res) {
-	try {
-		const userHistory = res.locals.userHistory;
+	const userDecoded = res.locals.userDecoded;
 
-		res.send(userHistory);
-	} catch (error) {
-		res.sendStatus(500);
-	}
+	const userHistory = await historyServices.getHistory(userDecoded);
+
+	res.status(200).send(userHistory);
 }
 
 export async function deleteHistory(req, res) {
-	try {
-		res.sendStatus(200);
-	} catch (error) {
-		res.sendStatus(500);
-	}
+	const { id } = req.params;
+
+	await historyServices.deleteHistory(id);
+
+	res.sendStatus(200);
 }
 
 export async function editHistory(req, res) {
-	try {
-		res.sendStatus(200);
-	} catch (error) {
-		res.sendStatus(500);
-	}
+	const { id } = req.params;
+	const dataToEdit = res.locals.dataToEdit;
+
+	await historyServices.editHistory(id, dataToEdit);
+
+	res.sendStatus(200);
 }
